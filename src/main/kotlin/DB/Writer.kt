@@ -3,14 +3,14 @@ package snkt.org.DB
 import snkt.org.model.User
 import snkt.org.model.UserShort
 
-fun insertUsersAndRewriteOld(usersToWrite: List<User>) {
+fun insertUsersAndRewriteOld(usersToWrite: List<User>, domain: String) {
     if (usersToWrite.isEmpty()) {
         return
     }
 
     getConnection().use { conn ->
         val query = """
-            INSERT OR REPLACE INTO users (userPrincipal, userHash) VALUES (?, ?)
+            INSERT OR REPLACE INTO users (userPrincipal, userHash, domain) VALUES (?, ?, ?)
         """.trimIndent()
 
         conn.autoCommit = false
@@ -19,6 +19,7 @@ fun insertUsersAndRewriteOld(usersToWrite: List<User>) {
                 for (user in usersToWrite) {
                     stmt.setString(1, user.userPrincipalName)
                     stmt.setString(2, user.userHash)
+                    stmt.setString(3, domain)
 
                     stmt.addBatch()
                 }
@@ -53,10 +54,4 @@ fun deleteUsers(usersToDelete: List<String>) {
             pstmt.executeUpdate()
         }
     }
-}
-
-fun main() {
-    insertUsersAndRewriteOld(listOf(
-        User()
-    ))
 }

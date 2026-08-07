@@ -42,6 +42,6 @@ fun main(args: Array<String>) {
             appConf.config.maxAttempts,
             pullList
         )
-        insertUsersAndRewriteOld(usersToWrite)
+        insertUsersAndRewriteOld(usersToWrite, it.domain)
     }
 }
