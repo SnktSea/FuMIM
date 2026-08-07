@@ -1,0 +1,17 @@
+[Servers]
+UZ = "0.0.0.0"
+KZ = "1.1.1.1"
+RU = "2.2.2.2"
+
+[UZ]
+user = "admin"
+password = "pass"
+port = 389
+
+[UZ.UserContains]
+Notes = "Solward"
+IsDisabled = false
+
+[UZ.UserDoesntContains]
+Mail = ""
+
