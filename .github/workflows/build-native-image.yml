@@ -1,0 +1,71 @@
+name: Build ShadowJar and Native Image (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+env:
+  GRAALVM_VERSION: "25"
+  GRAALVM_DISTRIBUTION: "graalvm"
+
+jobs:
+  shadow-jar:
+    name: Build shadowJar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build shadowJar
+        run: ./gradlew shadowJar --no-daemon
+
+      - name: Upload shadowJar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-jar
+          path: build/libs/*-all.jar
+          if-no-files-found: error
+
+  native-compile-windows:
+    name: Native Compile (Windows)
+    needs: shadow-jar
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: ${{ env.GRAALVM_VERSION }}
+          distribution: ${{ env.GRAALVM_DISTRIBUTION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: true
+
+      - name: Setup MSVC toolchain (required for native-image on Windows)
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Verify native-image is available
+        run: native-image --version
+
+      - name: Native Compile
+        shell: cmd
+        run: gradlew.bat nativeCompile --no-daemon
+
+      - name: Upload native binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-binary-windows
+          path: build/native/nativeCompile/*.exe
+          if-no-files-found: error
