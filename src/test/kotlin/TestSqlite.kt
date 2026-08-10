@@ -1,7 +1,7 @@
 import io.github.serpro69.kfaker.Faker
 import org.junit.jupiter.api.Test
 import snkt.org.DB.deleteUsers
-import snkt.org.DB.fetchUsersByDomain
+import snkt.org.DB.fetchShortUsersByDomain
 import snkt.org.DB.getConnection
 import snkt.org.DB.insertUsersAndRewriteOld
 import snkt.org.model.User
@@ -17,7 +17,7 @@ class TestSqlite {
     @Test
     fun `Test reading, writing and deleting objects`() {
         val userList = List(100) {
-            User(
+            UserShort(
                 userPrincipalName = faker.internet.email(),
                 userHash = faker.crypto.md5()
             )
@@ -29,7 +29,7 @@ class TestSqlite {
             conn.prepareStatement("DELETE FROM users").use { it.executeUpdate() }
 
             // Writing
-            insertUsersAndRewriteOld(userList, "snkt.test")
+//            insertUsersAndRewriteOld(userList, "snkt.test")
 
             // Reading
             var counter = 0
@@ -62,7 +62,7 @@ class TestSqlite {
     @Test
     fun `Test fetching values by domain`() {
         val userList = List(100) {
-            User(
+            UserShort(
                 userPrincipalName = faker.internet.email(),
                 userHash = faker.crypto.md5()
             )
@@ -102,7 +102,7 @@ class TestSqlite {
                 conn.autoCommit = true
             }
             for (i in domains.indices) {
-                expectThat(fetchUsersByDomain(domains[i]).size).isEqualTo(domainCounters[i])
+                expectThat(fetchShortUsersByDomain(domains[i]).size).isEqualTo(domainCounters[i])
             }
 
             // Cleaning

@@ -18,17 +18,25 @@ fun collectAdShortUsers(
         server,
         maxAttempts,
         processToExpression(server.filters),
-        listOf("userPrincipalName", "uSNChanged"))
+        listOf("userPrincipalName", "uSNChanged")
+    )
 
+    logger.debug { "Collecting short users... batch size: ${result.searchEntries.size}" }
     val users = mutableListOf<UserShort>()
-    result.searchEntries.forEach { e ->
-        users.add(
-            UserShort(
-                userPrincipalName = e.getAttributeValue("userPrincipalName"),
-                userHash = e.getAttributeValue("uSNChanged"),
+    result.searchEntries
+        .filter { e ->
+            e.getAttributeValue("userPrincipalName") != null &&
+                    e.getAttributeValue("uSNChanged") != null
+        }
+        .forEach { e ->
+            users.add(
+                UserShort(
+                    userPrincipalName = e.getAttributeValue("userPrincipalName"),
+                    userHash = e.getAttributeValue("uSNChanged"),
+                )
             )
-        )
-    }
+        }
+    logger.debug { "Short users collected: ${users.size}" }
     return users
 }
 
@@ -37,6 +45,10 @@ fun collectUsers(
     maxAttempts: Int,
     userList: List<UserShort>
 ): List<User> {
+    if (userList.isEmpty()) {
+        return listOf()
+    }
+
     val filterExpr = combineExpressions(
         processToExpression(server.filters),
         generateExpressionFromUserPrincipals(userList.map { it.userPrincipalName }),
@@ -46,17 +58,35 @@ fun collectUsers(
         server,
         maxAttempts,
         filterExpr,
-        listOf("userPrincipalName", "uSNChanged")) //TODO а что нам вообще нужно?
+        listOf("userPrincipalName", "uSNChanged", "displayName", "mail", "givenName", "sn")
+    )
 
+    logger.debug { "Collecting users... batch size: ${result.searchEntries.size}" }
     val users = mutableListOf<User>()
-    result.searchEntries.forEach { e ->
-        users.add(
-            User(
-                userPrincipalName = e.getAttributeValue("userPrincipalName"),
-                userHash = e.getAttributeValue("uSNChanged"),
-            )
-        )
+    result.searchEntries
+//        .filter { e ->
+//            e.getAttributeValue("userPrincipalName") != null &&
+//                    e.getAttributeValue("uSNChanged") != null &&
+//                    e.getAttributeValue("displayName") != null &&
+//                    e.getAttributeValue("mail") != null &&
+//                    e.getAttributeValue("givenName") != null &&
+//                    e.getAttributeValue("sn") != null
+//        }
+        .forEach { e ->
+            val upn = e.getAttributeValue("userPrincipalName")
+            val usn = e.getAttributeValue("uSNChanged")
+            val disp = e.getAttributeValue("displayName")
+            val mail = e.getAttributeValue("mail")
+            val given = e.getAttributeValue("givenName")
+            val sur = e.getAttributeValue("sn")
+
+            if (upn == null || usn == null || disp == null || mail == null || given == null || sur == null) {
+                logger.debug { "User skipped. UPN:$upn, USN:$usn, DisplayName:$disp, Mail:$mail, Given:$given, Surname:$sur" }
+            } else {
+                users.add(User(upn, usn, disp, mail, given, sur))
+            }
     }
+    logger.debug { "Users collected: ${users.size}" }
     return users
 }
 
@@ -81,18 +111,18 @@ fun getUserAttributesWithFilter(
         *attributes.toTypedArray()
     )
 
-    logger.debug { "(1/2) User fetching..." }
+    logger.debug { "User fetching..." }
     var result: SearchResult?
     for (attempt in 1..maxAttempts) {
         try {
             result = conn.search(query)
-            logger.debug { "(1/2) Fetching completed." }
+            logger.debug { "Fetching completed." }
             return result
         } catch (e: Exception) {
             if (attempt == maxAttempts) {
-                throw RuntimeException("(1/2) Failed to fetch users after $attempt attempts", e)
+                throw RuntimeException("Failed to fetch users after $attempt attempts", e)
             }
-            logger.warn(e) { "(1/2) Error fetching users attempt $attempt/$maxAttempts" }
+            logger.warn(e) { "Error fetching users attempt $attempt/$maxAttempts" }
             Thread.sleep(attempt * 1000L)
         } finally {
             conn.close()

@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.21"
     id("com.gradleup.shadow") version "9.3.2"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
+    id("org.graalvm.buildtools.native") version "1.1.8"
     application
 }
 
@@ -15,6 +16,15 @@ repositories {
 application {
     mainClass.set("snkt.org.MainKt")
 }
+
+graalvmNative {
+    binaries {
+        named("main") {
+            buildArgs.add("--enable-native-access=ALL-UNNAMED")
+        }
+    }
+}
+
 
 dependencies {
     // Source: https://mvnrepository.com/artifact/com.unboundid/unboundid-ldapsdk

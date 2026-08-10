@@ -49,19 +49,25 @@ fun parseConf(conf: String): AppConf {
                 )}
 
             servers.add(Server(
-                    domain = serverTable["domain"]?.asTomlLiteral()?.content
-                        ?: throw IllegalStateException("Missing 'user' in server '$key'"),
-                    host = value.asTomlLiteral().toString(),
-                    user = serverTable["user"]?.asTomlLiteral()?.content
-                        ?: throw IllegalStateException("Missing 'user' in server '$key'"),
-                    password = serverTable["password"]?.asTomlLiteral()?.content
-                        ?: throw IllegalStateException("Missing 'password' in server '$key'"),
-                    port = serverTable["port"]?.asTomlLiteral()?.content?.toInt()
-                        ?: throw IllegalStateException("Missing 'port' in server '$key'"),
-                    userPath = serverTable["userPath"]?.asTomlLiteral()?.content
-                        ?: throw IllegalStateException("Missing 'userPath' in server '$key'"),
-                    filters = filters
-                )
+                domain = serverTable["domain"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'domain' in server '$key'"),
+                host = value.asTomlLiteral().toString(),
+                user = serverTable["user"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'user' in server '$key'"),
+                password = serverTable["password"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'password' in server '$key'"),
+                port = serverTable["port"]?.asTomlLiteral()?.content?.toInt()
+                    ?: throw IllegalStateException("Missing 'port' in server '$key'"),
+                userPath = serverTable["userPath"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'userPath' in server '$key'"),
+                filters = filters,
+                exchangeHost = serverTable["exchangeHost"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'userPath' in server '$key'"),
+                skipCertificateCheck = serverTable["skipCertificateCheck"]?.asTomlLiteral()?.content?.toBoolean()
+                    ?: throw IllegalStateException("Missing 'skipCertificateCheck' in server '$key'"),
+                exchangeAuthType = serverTable["exchangeAuthType"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'exchangeAuthType' in server '$key'"),
+            )
             )
         } catch (e: Exception) {
             logger.error { "Bad configuration file: key: $key, value: $value" }

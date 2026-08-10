@@ -1,37 +1,40 @@
 package snkt.org.DB
 
+import snkt.org.logger
 import snkt.org.model.User
-import snkt.org.model.UserShort
 
 fun insertUsersAndRewriteOld(usersToWrite: List<User>, domain: String) {
     if (usersToWrite.isEmpty()) {
         return
     }
 
-    getConnection().use { conn ->
-        val query = """
-            INSERT OR REPLACE INTO users (userPrincipal, userHash, domain) VALUES (?, ?, ?)
+    val query = """
+            INSERT OR REPLACE INTO users (userPrincipal, userHash, domain, displayName, email, firstName, lastName) VALUES (?, ?, ?, ?, ?, ?, ?)
         """.trimIndent()
 
-        conn.autoCommit = false
-        try {
-            conn.prepareStatement(query).use { stmt ->
-                for (user in usersToWrite) {
-                    stmt.setString(1, user.userPrincipalName)
-                    stmt.setString(2, user.userHash)
-                    stmt.setString(3, domain)
+    getConnection().autoCommit = false
+    try {
+        getConnection().prepareStatement(query).use { stmt ->
+            for (user in usersToWrite) {
+                stmt.setString(1, user.userPrincipalName)
+                stmt.setString(2, user.userHash)
+                stmt.setString(3, domain)
+                stmt.setString(4, user.displayName)
+                stmt.setString(5, user.email)
+                stmt.setString(6, user.firstName)
+                stmt.setString(7, user.lastName)
 
-                    stmt.addBatch()
-                }
-                stmt.executeBatch()
+                stmt.addBatch()
             }
-            conn.commit()
-        } catch (ex: Exception) {
-            conn.rollback()
-            throw ex
-        } finally {
-            conn.autoCommit = true
+            logger.debug { "Adding new users to storage: ${usersToWrite.size}" }
+            stmt.executeBatch()
         }
+        getConnection().commit()
+    } catch (ex: Exception) {
+        getConnection().rollback()
+        throw ex
+    } finally {
+        getConnection().autoCommit = true
     }
 }
 
@@ -40,18 +43,44 @@ fun deleteUsers(usersToDelete: List<String>) {
         return
     }
 
-    getConnection().use { conn ->
-        val placeholders = usersToDelete.joinToString(",") { "?" }
-        val query = """
+    val placeholders = usersToDelete.joinToString(",") { "?" }
+    val query = """
             DELETE FROM users WHERE userPrincipal IN ($placeholders)
         """.trimIndent()
 
-        conn.prepareStatement(query).use { pstmt ->
+    getConnection().prepareStatement(query).use { pstmt ->
 
-            usersToDelete.forEachIndexed { index, string ->
-                pstmt.setString(index + 1, string)
-            }
-            pstmt.executeUpdate()
+        usersToDelete.forEachIndexed { index, string ->
+            pstmt.setString(index + 1, string)
         }
+        logger.debug { "Deleting users from storage: ${usersToDelete.size}" }
+        pstmt.executeUpdate()
+    }
+}
+
+fun updateExportMarkForUsers(users: List<User>) {
+    if (users.isEmpty()) {
+        return
+    }
+
+    val query = """
+        UPDATE users SET exported = true WHERE userPrincipal = ?
+        """.trimIndent()
+    getConnection().autoCommit = false
+    try {
+        getConnection().prepareStatement(query).use { stmt ->
+            for (user in users) {
+                stmt.setString(1, user.userPrincipalName)
+                stmt.addBatch()
+            }
+            logger.debug { "Marking users as exported in local storage: ${users.size}" }
+            stmt.executeBatch()
+        }
+        getConnection().commit()
+    } catch (ex: Exception) {
+        getConnection().rollback()
+        throw ex
+    } finally {
+        getConnection().autoCommit = true
     }
 }

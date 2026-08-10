@@ -10,7 +10,7 @@ fun processToExpression(filters: List<Filter>): String {
         logger.debug { "No filters found" }
         return ""
     } else {
-        val sb = StringBuilder().append("(|") //TODO оператор &?
+        val sb = StringBuilder().append("(&") //TODO оператор &?
         filters.forEach { filter ->
             val isNegative = filter.filterType == '-'
             val prefix = if (isNegative) "(!" else ""
@@ -21,6 +21,7 @@ fun processToExpression(filters: List<Filter>): String {
             )
         }
         sb.append(")")
+        logger.debug { "Filter expression: $sb" }
         return sb.toString()
     }
 }
@@ -37,6 +38,7 @@ fun generateExpressionFromUserPrincipals(users: List<String>): String {
             sb.append("(userPrincipalName=$user)")
         }
         sb.append(")")
+        logger.debug { "Filter expression: $sb" }
         return sb.toString()
     }
 }

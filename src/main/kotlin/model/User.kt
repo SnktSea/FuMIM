@@ -8,4 +8,8 @@ data class UserShort(
 data class User(
     val userPrincipalName: String,
     val userHash: String,
+    val displayName: String,
+    val email: String,
+    val firstName: String,
+    val lastName: String,
 )
