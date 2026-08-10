@@ -1,17 +1,24 @@
-[Servers]
-UZ = "0.0.0.0"
-KZ = "1.1.1.1"
-RU = "2.2.2.2"
+[config]
+maxAttempts = 3
 
-[UZ]
-user = "admin"
-password = "pass"
+[servers]
+SNKT = "172.17.242.170"
+
+[SNKT]
+domain = "domain.local"
+user = "ldap@domain.local"
+password = "StrongPassword"
 port = 389
+userPath = "CN=Users,DC=domain,DC=local"
+exchangeHost = "mail.domain.local"
+exchangeAuthType = "Basic"
+skipCertificateCheck = true
 
-[UZ.UserContains]
-Notes = "Solward"
-IsDisabled = false
 
-[UZ.UserDoesntContains]
-Mail = ""
+[SNKT.userContains]
+objectClass = "user"
+objectCategory = "person"
+mail = "*"
 
+[SNKT.userDoesntContains]
+pager = "123"
