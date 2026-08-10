@@ -21,7 +21,7 @@ graalvmNative {
     binaries {
         named("main") {
             buildArgs.add("--enable-native-access=ALL-UNNAMED")
-            buildArgs.add("--static")
+            buildArgs.add("-march=compatibility")
         }
     }
 }
