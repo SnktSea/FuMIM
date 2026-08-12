@@ -7,6 +7,7 @@ data class Server(
     val user: String,
     val password: String,
     val userPath: String,
+    val groupPath: String,
     val exchangeHost: String,
     val skipCertificateCheck: Boolean,
     val exchangeAuthType: String,

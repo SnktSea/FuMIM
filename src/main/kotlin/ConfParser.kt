@@ -60,6 +60,8 @@ fun parseConf(conf: String): AppConf {
                     ?: throw IllegalStateException("Missing 'port' in server '$key'"),
                 userPath = serverTable["userPath"]?.asTomlLiteral()?.content
                     ?: throw IllegalStateException("Missing 'userPath' in server '$key'"),
+                groupPath = serverTable["groupPath"]?.asTomlLiteral()?.content
+                    ?: throw IllegalStateException("Missing 'userPath' in server '$key'"),
                 filters = filters,
                 exchangeHost = serverTable["exchangeHost"]?.asTomlLiteral()?.content
                     ?: throw IllegalStateException("Missing 'userPath' in server '$key'"),
@@ -87,5 +89,7 @@ data class TomlConf(
 data class Config(
     val maxAttempts: Int,
     val usersToDeleteCsvPath: String,
-    val usersToAddPath: String
+    val usersToAddPath: String,
+    val groupsToDeleteCsvPath: String,
+    val groupsToAddPath: String
 )

@@ -16,5 +16,18 @@ fun initializeDb() {
                 )
             """.trimIndent())
         }
+        conn.createStatement().use { stmt ->
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS groups (
+                mail TEXT PRIMARY KEY,
+                groupHash TEXT NOT NULL,
+                displayName TEXT NOT NULL,
+                mailNickname TEXT NOT NULL,
+                proxyAddresses TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                exported BOOLEAN NOT NULL DEFAULT false
+                )
+            """.trimIndent())
+        }
     }
 }

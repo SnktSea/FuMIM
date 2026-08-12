@@ -44,3 +44,4 @@ bin/
 conf.toml
 fumim.db
 logs/
+*.csv

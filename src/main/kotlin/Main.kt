@@ -1,16 +1,9 @@
 package snkt.org
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import snkt.org.ADIntegraion.collectAdShortUsers
-import snkt.org.ADIntegraion.collectUsers
-import snkt.org.DB.deleteUsers
-import snkt.org.DB.fetchAllNotExportedUsers
-import snkt.org.DB.fetchShortUsersByDomain
-import snkt.org.DB.fetchUsersNotInDomainAndNotExported
-import snkt.org.DB.getConnection
-import snkt.org.DB.initializeDb
-import snkt.org.DB.insertUsersAndRewriteOld
-import snkt.org.DB.updateExportMarkForUsers
+import snkt.org.ADIntegraion.collectObjects
+import snkt.org.DB.*
+import snkt.org.model.Group
 import snkt.org.model.User
 import snkt.org.model.UserShort
 import snkt.org.model.helpText
@@ -27,7 +20,7 @@ val confFile: String = Files.readString(
 
 fun main(args: Array<String>) {
     logger.info { "Stating application..." }
-    getConnection() // Создание соединения с БД
+    getConnection() // Создание соединения с БД (Прогрев)
 
     var optind = 0
     while (optind < args.size) {
@@ -45,31 +38,27 @@ fun main(args: Array<String>) {
     val appConf = parseConf(confFile)
 
     val usersToDelete = mutableListOf<String>()
+    val groupsToDelete = mutableListOf<String>()
     appConf.servers.forEach {
         logger.info { "Processing ${it.domain}" }
-        val adUsers = collectAdShortUsers(
-            it,
-            appConf.config.maxAttempts
-        )
-        val (cleanList, pullList) = compareAdUsersToLocal(
-            it.domain,
-            adUsers,
-            fetchShortUsersByDomain(it.domain)
-        )
-        usersToDelete.addAll(cleanList)
-        deleteUsers(cleanList)
-
-        val usersToWrite = collectUsers(
-            it,
-            appConf.config.maxAttempts,
-            pullList
-        )
-        insertUsersAndRewriteOld(usersToWrite, it.domain)
+        usersToDelete.addAll(userProcessor(appConf.config, it))
+        groupsToDelete.addAll(groupProcessor(it, appConf.config))
     }
     exportListToCsv(usersToDelete, String::class, appConf.config.usersToDeleteCsvPath)
+    exportListToCsv(groupsToDelete, String::class, appConf.config.groupsToDeleteCsvPath)
 
-    val usersToExport = fetchAllNotExportedUsers()
+    val usersToExport = fetchAllNotExportedObjects(
+        User::class,
+        "users",
+        listOf("userPrincipal", "userHash", "displayName", "email", "firstName", "lastName")
+    )
+    val groupsToExport = fetchAllNotExportedObjects(
+        Group::class,
+        "groups",
+        listOf("mail", "groupHash", "displayName", "mailNickname", "proxyAddresses")
+    )
     exportListToCsv(usersToExport, User::class, appConf.config.usersToAddPath)
+    exportListToCsv(groupsToExport, Group::class, appConf.config.groupsToAddPath)
     updateExportMarkForUsers(usersToExport)
 
     getConnection().close()

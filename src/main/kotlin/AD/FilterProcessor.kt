@@ -26,8 +26,8 @@ fun processToExpression(filters: List<Filter>): String {
     }
 }
 
-fun generateExpressionFromUserPrincipals(users: List<String>): String {
-    logger.debug { "Generating filter from user principals..." }
+fun generateExpressionFromUserPrincipals(users: List<String>, filterKey: String): String {
+    logger.debug { "Generating filter from object principals..." }
     if (users.isEmpty()) {
         logger.debug { "No filters found" }
         return ""
@@ -35,7 +35,7 @@ fun generateExpressionFromUserPrincipals(users: List<String>): String {
         val sb = StringBuilder()
         sb.append("(|")
         users.forEach { user ->
-            sb.append("(userPrincipalName=$user)")
+            sb.append("($filterKey=$user)")
         }
         sb.append(")")
         logger.debug { "Filter expression: $sb" }
