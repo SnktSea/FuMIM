@@ -59,7 +59,8 @@ fun main(args: Array<String>) {
     )
     exportListToCsv(usersToExport, User::class, appConf.config.usersToAddPath)
     exportListToCsv(groupsToExport, Group::class, appConf.config.groupsToAddPath)
-    updateExportMarkForUsers(usersToExport)
+    updateExportMarkForObjects(usersToExport.map { it.userPrincipalName }, "users", "userPrincipal")
+    updateExportMarkForObjects(groupsToExport.map { it.mail }, "groups", "mail")
 
     getConnection().close()
     logger.debug { "DB connection successfully closed" }

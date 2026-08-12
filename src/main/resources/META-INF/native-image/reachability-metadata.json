@@ -387,6 +387,24 @@
       ]
     },
     {
+      "type": "snkt.org.model.Group"
+    },
+    {
+      "type": "snkt.org.model.User"
+    },
+    {
+      "type": "snkt.org.model.UserShort",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
       "type": "sun.launcher.LauncherHelper",
       "jniAccessible": true,
       "fields": [

@@ -112,22 +112,22 @@ fun deleteGroups(usersToDelete: List<String>) {
     }
 }
 
-fun updateExportMarkForUsers(users: List<User>) {
-    if (users.isEmpty()) {
+fun updateExportMarkForObjects(objects: List<String>, tableName: String, idColumn: String) {
+    if (objects.isEmpty()) {
         return
     }
 
     val query = """
-        UPDATE users SET exported = true WHERE userPrincipal = ?
+        UPDATE $tableName SET exported = true WHERE $idColumn = ?
         """.trimIndent()
     getConnection().autoCommit = false
     try {
         getConnection().prepareStatement(query).use { stmt ->
-            for (user in users) {
-                stmt.setString(1, user.userPrincipalName)
+            for (o in objects) {
+                stmt.setString(1, o)
                 stmt.addBatch()
             }
-            logger.debug { "Marking users as exported in local storage: ${users.size}" }
+            logger.debug { "Marking objects as exported in local storage: ${objects.size}" }
             stmt.executeBatch()
         }
         getConnection().commit()
