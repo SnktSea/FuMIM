@@ -47,3 +47,26 @@ fun fetchUsersNotInDomainAndNotExported(domain: String): List<User> {
         return users
     }
 }
+
+fun fetchAllNotExportedUsers(): List<User> {
+    val selectUsers = "SELECT * FROM users WHERE exported = false"
+    getConnection().prepareStatement(selectUsers).use { pstmt ->
+        val resultSet = pstmt.executeQuery()
+
+        logger.debug { "Collecting not exported short users from local storage" }
+        val users = mutableListOf<User>()
+        while (resultSet.next()) {
+            users.add(
+                User(
+                    userPrincipalName = resultSet.getString("userPrincipal"),
+                    userHash = resultSet.getString("userHash"),
+                    displayName = resultSet.getString("displayName"),
+                    email = resultSet.getString("email"),
+                    firstName = resultSet.getString("firstName"),
+                    lastName = resultSet.getString("lastName")
+                )
+            )
+        }
+        return users
+    }
+}

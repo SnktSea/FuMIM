@@ -3,9 +3,11 @@ package snkt.org
 import snkt.org.DB.fetchShortUsersByDomain
 import snkt.org.model.UserShort
 
-fun compareAdUsersToLocal(domain: String, adUsers: List<UserShort>): Pair<List<String>, List<UserShort>> {
-    val localUsers = fetchShortUsersByDomain(domain)
-
+fun compareAdUsersToLocal(
+    domain: String,
+    adUsers: List<UserShort>,
+    localUsers: List<UserShort>
+): Pair<List<String>, List<UserShort>> {
     val localUserSet = localUsers.toSet()
     val adUserSet = adUsers.toSet()
 

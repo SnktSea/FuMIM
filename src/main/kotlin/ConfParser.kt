@@ -85,5 +85,7 @@ data class TomlConf(
 
 @Serializable
 data class Config(
-    val maxAttempts: Int
+    val maxAttempts: Int,
+    val usersToDeleteCsvPath: String,
+    val usersToAddPath: String
 )
